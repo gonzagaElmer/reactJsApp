@@ -13,14 +13,14 @@ ReactJs Notes
     - createFile: server.js
         - editFile: server.js
     - setup database
-    - runServer: npm run dev
+    - runServer: "npm run dev"
 
 3. setup client
-    - cdClient: npx create-react-app .
+    - cdClient: "npx create-react-app ."  -> (include the period)
     - editClientFile: package.json
         - add: proxy: "http://localhost:3000"
-    - cdClient: npm install axios bootstrap react-router-dom
-    - cdClient: npm start
+    - cdClient: "npm install axios bootstrap react-router-dom"
+    - cdClient: "npm start"
     - editFile: app.js
     - create elements
 
