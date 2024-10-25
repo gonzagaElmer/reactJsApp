@@ -30,17 +30,18 @@ app.get("/students", (req, res) => {
 })
 
 app.post('/add_user', (req, res) => {
-    sql = "INSERT INTO student_details (`name`, `email`, `password`, `age`, `gender`) VALUES (?, ?, ?, ?, ?)";
+    sql = "INSERT INTO student_details (`name`, `email`, `password`, `age`, `gender`, `status`) VALUES (?, ?, ?, ?, ?, ?)";
     const values = [
         req.body.name,
         req.body.email,
         req.body.password,
         req.body.age,
-        req.body.gender
+        req.body.gender,
+        "1"
     ]
     console.log(sql);
     db.query(sql, values, (err, result) => {
-        if (err) return res.json({message: "Error adding student."})
+        if (err) return res.json({message: "Error adding student. Errcode = " + err })
         return res.json({success: "Student added Successfuly"});
     })                                                                                                                                                                                                                                                                                                                                                                                                        
 })

@@ -6,7 +6,7 @@ ReactJs Notes
 
 2. setup server
     - cdServer: npm install express mysql nodemon cors
-    - moveFile: package.json -> serverFolder
+    - moveFile: package.json to serverFolder
     - editServerFile: package.json
         - edit: main 
         - add: start and dev
