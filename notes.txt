@@ -1,0 +1,30 @@
+ReactJs Notes
+
+1. setup proj
+    - create client & server folders
+    - cdRoot: npm init -y
+
+2. setup server
+    - cdServer: npm install express mysql nodemon cors
+    - moveFile: package.json -> serverFolder
+    - editServerFile: package.json
+        - edit: main 
+        - add: start and dev
+    - createFile: server.js
+        - editFile: server.js
+    - setup database
+    - runServer: npm run dev
+
+3. setup client
+    - cdClient: npx create-react-app .
+    - editClientFile: package.json
+        - add: proxy: "http://localhost:3000"
+    - cdClient: npm install axios bootstrap react-router-dom
+    - cdClient: npm start
+    - editFile: app.js
+    - create elements
+
+
+4. run app
+ cdServer: npm run dev
+ cdClient: npm start
