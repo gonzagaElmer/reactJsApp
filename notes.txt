@@ -21,7 +21,7 @@ ReactJs Notes
         - add: proxy: "http://localhost:3000"
     - cdClient: "npm install axios bootstrap react-router-dom"
     - cdClient: "npm start"
-    - editFile: app.js
+    - editFile: app.js and setup navigations
     - create elements
 
 
