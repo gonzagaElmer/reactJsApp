@@ -6,7 +6,7 @@ import NavBar from './NavBar'
 import Create from './Create'
 import Read from './Read' 
 import HomeTabs from './HomeTabs'
-import { PAGE_FROM, ACTIVE_TAB } from '../config/constants'
+import { PAGE_FROM, ACTIVE_TAB } from '../../config/constants'
 
 function Home() {
   const [data, setData] = useState([])
@@ -72,44 +72,44 @@ function Home() {
 					{/* table */}
 					<div className='table-responsive'>
 						<table className='table table-condensed '>
-						<thead>
-						<tr>
-							<th>#</th>
-							<th>ID</th>
-							<th>Name</th>
-							<th>Email</th>
-							<th>Age</th>
-							<th>Gender</th>
-							<th colSpan={3}>Actions</th>
-						</tr>
-						</thead>
-						<tbody>
-						{
-							Array.isArray(data) && data.length > 0 ? 
-							( 
-							data.map((student) => {
-								return(
-								<tr key={student.id}>
-									<td>{counter++}</td>
-									<td>{student.id}</td>
-									<td>{student.name}</td> 
-									<td>{student.email}</td>
-									<td>{student.age}</td>
-									<td>{student.gender}</td>
-									
-									<td><button className='btn btn-info' onClick={() => {handleStudent(student.id, "view")} }>View</button></td>
-									<td><button className='btn btn-primary' onClick={() => {handleStudent(student.id, "edit")} }>Edit</button></td>
-									<td><Link className='btn btn-secondary' onClick={() => handleDeactivate(student.id)}>Deactivate</Link></td>
+							<thead>
+								<tr>
+									<th>#</th>
+									<th>ID</th>
+									<th>Name</th>
+									<th>Email</th>
+									<th>Age</th>
+									<th>Gender</th>
+									<th colSpan={3}>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+							{
+								Array.isArray(data) && data.length > 0 ? 
+								( 
+								data.map((student) => {
+									return(
+									<tr key={student.id}>
+										<td>{counter++}</td>
+										<td>{student.id}</td>
+										<td>{student.name}</td> 
+										<td>{student.email}</td>
+										<td>{student.age}</td>
+										<td>{student.gender}</td>
+										
+										<td><button className='btn btn-info' onClick={() => {handleStudent(student.id, "view")} }>View</button></td>
+										<td><button className='btn btn-primary' onClick={() => {handleStudent(student.id, "edit")} }>Edit</button></td>
+										<td><Link className='btn btn-secondary' onClick={() => handleDeactivate(student.id)}>Deactivate</Link></td>
+									</tr>
+									)
+								})
+								) : (
+								<tr>
+									<td colSpan={7} className='text-center text-danger'>No active student.</td>
 								</tr>
 								)
-							})
-							) : (
-							<tr>
-								<td colSpan={7} className='text-center text-danger'>No active student.</td>
-							</tr>
-							)
-						}
-						</tbody>
+							}
+							</tbody>
 						</table>
 					</div>
 				</div>

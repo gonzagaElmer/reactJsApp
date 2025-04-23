@@ -30,7 +30,7 @@ const mOrderByDateASC = "ORDER BY add_date ASC";
 const mSelectStudentQuery = "SELECT * FROM " + mStudentDetailsTable + " WHERE `is_active` = ? " + mOrderByDateASC;
 const mActivateToggleSql =  "UPDATE " + mStudentDetailsTable + " SET `is_active` = ? WHERE  id = ?";
 const mGetDetailsByEmailAndPass = "SELECT id, name, email FROM " + mAdminDetailsTable + " WHERE `email` = ? AND `password` = ?";
-var mAdminDetails = {};
+var mAdminDetailsObj = {};
 var mIsOnline = 0;
 var mDefaultStudentPass = "admin@123"
 
@@ -42,10 +42,10 @@ function updateIsOnlineStatus(res) {
     const values = [
         mIsOnline,
         getCurrentTimestamp(),
-        mAdminDetails.id
+        mAdminDetailsObj.id
     ]
-    var successMsg = (mIsOnline) ? "Hello, " + mAdminDetails.name + "!" : "Logged out successfuly!";
-    var adminDetails = (mIsOnline) ? mAdminDetails : new Object;
+    var successMsg = (mIsOnline) ? "Hello, " + mAdminDetailsObj.name + "!" : "Logged out successfuly!";
+    var adminDetails = (mIsOnline) ? mAdminDetailsObj : new Object;
     
     db.query(updateSql, values, (dbErr, dbRes) => {
         if (dbErr) return res.json({error: "Login credentials invalid. Please try again."})
@@ -78,10 +78,9 @@ app.post("/admin_login", (req, res) => {
         } else {
             if (dbRes != null) {
                 try {
-                    mAdminDetails = dbRes[0];
+                    mAdminDetailsObj = dbRes[0];
                     // log data
-                    console.log("mAdminDetails: " + JSON.stringify(mAdminDetails));
-                    if (mAdminDetails !== null) {
+                    if (mAdminDetailsObj !== null) {
                         mIsOnline = 1;
                         updateIsOnlineStatus(res)
                     }
@@ -145,10 +144,9 @@ function registerAdminAccount(req, res) {
                 } else {
                     if (dbRes != 0) {
                         try {
-                            mAdminDetails = dbRes[0];
+                            mAdminDetailsObj = dbRes[0];
                             // log data
-                            console.log("reg mAdminDetails: " + JSON.stringify(mAdminDetails));
-                            if (mAdminDetails !== null) {
+                            if (mAdminDetailsObj !== null) {
                                 mIsOnline = 1;
                                 updateIsOnlineStatus(res)
                             }
@@ -227,8 +225,8 @@ app.get("/get_student/:id", (req, res) => {
 
 app.get("/get_admin/:id", (req, res) => {
     const adminId = req.params.id
-    const adminSql = "SELECT * FROM " + mAdminDetailsTable + " WHERE `id`=?";
-    db.query(adminSql, [adminId], (dbErr, dbRes) => {
+    const adminSql = "SELECT * FROM " + mAdminDetailsTable + " WHERE `id` = ?";
+    db.query(adminSql, [ adminId ], (dbErr, dbRes) => {
         if (dbErr) return res.json({error: "Error fetching Admin's details"})
             return res.json(dbRes)
     })
@@ -250,6 +248,23 @@ app.post('/edit_user/:id', (req, res) => {
         if (dbErr) return res.json({error: "There's an error editing this student"})
         return res.json({success: "Student's info is updated Successfuly"});
     })                                                                                                                                                                                                                                                                                                                                                                                                        
+})
+
+// editing admin
+app.post('/edit_admin/:id', (req, res) => {
+    console.log("edit ")
+    const adminId = req.params.id
+    console.log("adminId = " + adminId)
+    const updateAdminSql = "UPDATE " + mAdminDetailsTable + " SET `password` = ? WHERE id = ?";
+    const updateAdminVal = [
+        req.body.password,
+        adminId
+    ]
+    console.log("updateAdminVal = " + updateAdminVal)
+    db.query(updateAdminSql, updateAdminVal, (dbErr, dbRes) => {
+        if (dbErr) return res.json( {error: "There's an error changing admin's password."} )
+            return res.json({success: "Password changed succesfully."})
+    })
 })
 
 // activating student

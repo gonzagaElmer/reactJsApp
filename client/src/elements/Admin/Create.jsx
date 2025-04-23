@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react'
 import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
+import { AXIOS_ERR_MSG } from '../../config/constants';
+import { DEFULT_STUDENT_PASS } from '../../config/constants'
 
 function Create() {
-    const navigate = useNavigate();
     const closeButtonRef = useRef(null);
     const [values, setValues] = useState({
         cre_name: '',
@@ -37,7 +37,8 @@ function Create() {
                 console.log("out")
             })
             .catch((err) => {
-                alert("Error: " + err.error)
+                alert(AXIOS_ERR_MSG)
+                console.log(err)
             })
         }
     } 
@@ -47,7 +48,7 @@ function Create() {
         <h3>Adding a Student</h3>
 
         <form onSubmit={handleSubmit}>
-            <div className='row my-3'>
+            <div className='row my-3 px-1'>
                 <div className='col-6'>
                     <label htmlFor='name'>Name</label>
                     <input type='text' name='name' className='form-control' required 
@@ -63,7 +64,7 @@ function Create() {
                 </div>
             </div>
 
-            <div className='row my-3'>
+            <div className='row my-3 px-1'>
                 <div className='col-6'>
                     <label htmlFor='gender'>Gender</label>
                     <select name='gender' className='form-select' required 
@@ -83,10 +84,11 @@ function Create() {
                 </div>
             </div>
             
+            <p className='text-danger text-center px-1'>NOTE: The student's default password is: { DEFULT_STUDENT_PASS }</p>
             {/* buttons */}
             <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-                <button type='submit' className='btn btn-primary'>Add and Save</button>
-                <button type="button" className="btn btn-secondary mx-2" ref={closeButtonRef}  data-bs-dismiss="modal">Cancel</button>
+                <button type='submit' className='btn btn-success mx-1'>Add Student</button>
+                <button type="button" className="btn btn-secondary mx-1" ref={closeButtonRef}  data-bs-dismiss="modal">Cancel</button>
             </div>
         </form>
     </div>

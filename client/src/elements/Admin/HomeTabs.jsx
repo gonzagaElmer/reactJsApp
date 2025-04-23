@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { ACTIVE_TAB, DEACTIVATED_TAB } from '../config/constants';
+import { ACTIVE_TAB, DEACTIVATED_TAB } from '../../config/constants';
 
 function HomeTabs({currentTab}) {
     const activeStudentsIsActive = currentTab === ACTIVE_TAB ? "active text-decoration-none" : "";

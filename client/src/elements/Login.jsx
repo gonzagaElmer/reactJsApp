@@ -1,7 +1,7 @@
 import axios from 'axios'
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LS_ADMIN_ID, LS_ADMIN_NAME, LS_ADMIN_EMAIL, APP_NAME  } from '../config/constants';
+import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME  } from '../config/constants';
 
 function Login() {
     const navigate = useNavigate();
@@ -40,7 +40,6 @@ function Login() {
     function saveLocalStorage(adminObj) {
         localStorage.setItem(LS_ADMIN_ID, adminObj.id)
         localStorage.setItem(LS_ADMIN_NAME, adminObj.name)
-        localStorage.setItem(LS_ADMIN_EMAIL, adminObj.email)
     }
 
     return (

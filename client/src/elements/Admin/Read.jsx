@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import NavBar from './NavBar'
-import { PAGE_FROM, ACTIVE_TAB, DEACTIVATED_TAB } from '../config/constants'
+import { PAGE_FROM, ACTIVE_TAB, DEACTIVATED_TAB, AXIOS_ERR_MSG } from '../../config/constants'
 
 function Read() {
 	const [data, setData] = useState([])
@@ -16,6 +16,7 @@ function Read() {
 			setData(res.data)
 		})
 		.catch((err) => {
+			alert(AXIOS_ERR_MSG)
 			console.log(err)
 		})
 	})
@@ -35,7 +36,6 @@ function Read() {
 			<NavBar/>
 
 			<hr></hr>
-			
 			<div className='card p-4 mt-2'>
 				<h3 className='d-flex justify-content-between'>Student Info</h3>
 				{
@@ -72,7 +72,7 @@ function Read() {
 									</tr>
 									<tr >
 										<td>Status: </td>
-										<td>{ (student['is_active'] == 1) ? "Active" : "Inactive" }</td>
+										<td>{ (student['is_active'] === 1) ? "Active" : "Inactive" }</td>
 									</tr>
 								</tbody>
 							</table>

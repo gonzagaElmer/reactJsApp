@@ -1,23 +1,22 @@
 import React from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownDivider } from 'react-bootstrap';
-import {Link, useParams, useNavigate} from 'react-router-dom'
+import {Link, useNavigate} from 'react-router-dom'
 import axios from 'axios';
-import { LS_ADMIN_ID, LS_ADMIN_NAME, LS_ADMIN_EMAIL, APP_NAME, PAGE_FROM  } from '../config/constants';
+import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME, PAGE_FROM  } from '../../config/constants';
 import { useEffect } from 'react';
 
 function NavBar() {
 	const navigate = useNavigate()
 	const mAdminId = localStorage.getItem(LS_ADMIN_ID)
 	const mAdminName = localStorage.getItem(LS_ADMIN_NAME)
-	const mAdminEmail = localStorage.getItem(LS_ADMIN_EMAIL)
 	
 	// force login
 	useEffect(() => {
 		if (mAdminId == null) {
 			navigate('/login')
 		}
-	}, [navigate])
+	}, [navigate, mAdminId])
 
 	// logout
 	function handleLogout(e) {
@@ -39,12 +38,7 @@ function NavBar() {
 	function clearLocalStorage() {
 		localStorage.removeItem(LS_ADMIN_ID)
 		localStorage.removeItem(LS_ADMIN_NAME)
-		localStorage.removeItem(LS_ADMIN_EMAIL)
 		localStorage.removeItem(PAGE_FROM)
-	}
-
-	function handleSearch() {
-
 	}
 
 	return (
