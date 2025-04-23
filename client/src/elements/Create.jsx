@@ -1,61 +1,94 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import axios from 'axios'
-import {Link, useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 function Create() {
-    const [values, setValues] = useState({
-        name: '',
-        email: '',
-        age: '',
-        gender: ''
-    })
-
     const navigate = useNavigate();
+    const closeButtonRef = useRef(null);
+    const [values, setValues] = useState({
+        cre_name: '',
+        cre_email: '',
+        cre_age: '',
+        cre_gender: '',
+        cre_password: '',
+        cre_confirm_password: ''
+    })
 
     function handleSubmit(e) {
         e.preventDefault()
 
-        axios.post('/add_user', values)
-        .then((res) => {
-            alert('Added successfully')
-            navigate('/')
-        })
-        .catch((err) => {
-            alert('Error: [' +err+ '] occured. Please try again.')
-        })
+        if (values.cre_name === "" || values.cre_email === "" || values.cre_age === "") {
+            alert('Please fill out the form properly.')
+        } else {
+            // send post request
+            axios.post('/add_student', values)
+            .then((res) => {
+                console.log(JSON.stringify(res))
+                if (res.data.error !== undefined) {
+                    console.log("if")
+                    alert(res.data.error)
+                } else {
+                    console.log("else")
+                    if (closeButtonRef.current) {
+                        closeButtonRef.current.click();
+                    }
+                    alert(res.data.success)
+                }
+                console.log("out")
+            })
+            .catch((err) => {
+                alert("Error: " + err.error)
+            })
+        }
     } 
 
   return (
-    <div className='container mt-4'>
-        <div className='row justify-content-center'>
-            <div className='col-10'>
-                <Link to='/'>&larr; Back to Home</Link>
-                <div className=' card p-4 mt-4'>
-                    <h3>Adding a Student</h3>
-                    <form onSubmit={handleSubmit}>
-                        <div className='form-group my-3'>
-                            <label htmlFor='name'>Name</label>
-                            <input type='text' name='name' className='form-control' required onChange={(e)=> setValues({...values, name: e.target.value})} />
-                        </div>
-                        <div className='form-group my-3'>
-                            <label htmlFor='email'>Email</label>
-                            <input type='email' name='email' className='form-control' required onChange={(e)=> setValues({...values, email: e.target.value})} />
-                        </div>
-                        <div className='form-group my-3'>
-                            <label htmlFor='gender'>Gender</label>
-                            <input type='text' name='gender' className='form-control' required onChange={(e)=> setValues({...values, gender: e.target.value})} />
-                        </div>
-                        <div className='form-group my-3'>
-                            <label htmlFor='age'>Age</label>
-                            <input type='number' name='age' className='form-control' required onChange={(e)=> setValues({...values, age: e.target.value})} />
-                        </div>
-                        <div className='form-group my-3'>
-                            <button type='submit' className='btn btn-success'>Save</button>
-                        </div>
-                    </form>
+    <div className='row justify-content-center my-4 mx-2'>
+        <h3>Adding a Student</h3>
+
+        <form onSubmit={handleSubmit}>
+            <div className='row my-3'>
+                <div className='col-6'>
+                    <label htmlFor='name'>Name</label>
+                    <input type='text' name='name' className='form-control' required 
+                        onChange={(e)=> setValues({...values, cre_name: e.target.value})} 
+                    />
+                </div>
+
+                <div className='col-6'>
+                    <label htmlFor='email'>Email</label>
+                    <input type='email' name='email' className='form-control' required 
+                        onChange={(e)=> setValues({...values, cre_email: e.target.value})} 
+                    />
                 </div>
             </div>
-        </div>
+
+            <div className='row my-3'>
+                <div className='col-6'>
+                    <label htmlFor='gender'>Gender</label>
+                    <select name='gender' className='form-select' required 
+                        onChange={(e)=> setValues({...values, cre_gender: e.target.value})} 
+                    >
+                        <option value="">Select a gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <div className='col-6'>
+                    <label htmlFor='age'>Age</label>
+                    <input type='number' name='age' className='form-control' required 
+                        onChange={(e)=> setValues({...values, cre_age: e.target.value})} 
+                    />
+                </div>
+            </div>
+            
+            {/* buttons */}
+            <div className="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                <button type='submit' className='btn btn-primary'>Add and Save</button>
+                <button type="button" className="btn btn-secondary mx-2" ref={closeButtonRef}  data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </form>
     </div>
   )
 }

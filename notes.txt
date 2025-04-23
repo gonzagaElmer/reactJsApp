@@ -20,11 +20,15 @@ ReactJs Notes
     - editClientFile: package.json
         - add: proxy: "http://localhost:3000"
     - cdClient: "npm install axios bootstrap react-router-dom"
-    - cdClient: "npm start"
+    - runClient: "npm start"
     - editFile: app.js and setup navigations
     - create elements
 
+ 3.1 creating a new elements
+   - add route to App.js 
+   - on new Element type : rfce
 
-4. run app
+4. running the app
+ xammp: run mysql and apache
  cdServer: npm run dev
  cdClient: npm start
