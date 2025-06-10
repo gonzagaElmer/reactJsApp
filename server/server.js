@@ -99,6 +99,25 @@ function getCurrentTimestamp() {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+async function getHashedPassword(passVal, req, res) {
+    let hashedPassword
+    try {
+        const salt = await bcrypt.genSalt(10); // Generate a salt (cost factor 10)
+        hashedPassword = await bcrypt.hash(passVal, salt); // Hash the password
+        console.log('Success hashing password');
+        return hashedPassword
+    } catch (err) {
+        console.log('Error hashing password');
+        // Important: Delete the uploaded file if password hashing fails
+        if (req.file) { // Ensure req.file exists before trying to unlink
+            fs.unlink(req.file.path, (unlinkErr) => {
+                if (unlinkErr) console.error("Error deleting file after password hash failure:", unlinkErr);
+            });
+        }
+        return res.json({ error: "Error on password hashing." })
+    }
+}
+
 
 // ================================================================================================
 // ===================================== ADMIN urls start =========================================
@@ -256,38 +275,51 @@ app.get("/deactivated", (req, res) => {
 })
 
 // adding student
-app.post('/add_student', mUpload.single('image'), async (req, res) => {
-    // --- Hash Password ---
-    let hashedPassword;
-    try {
-        const salt = await bcrypt.genSalt(10); // Generate a salt (cost factor 10)
-        hashedPassword = await bcrypt.hash(req.body.password, salt); // Hash the password
-    } catch (err) {
-        console.error('Error hashing password:', err);
-        fs.unlink(req.file.path, (err) => { // Delete file if password hashing fails
-            if (err) console.error("Error deleting file:", err);
-        });
-        return res.json({error: "Error processing password."})
+app.post('/add_student', mUpload.single('img'), async (req, res) => {
+    // Check if a file was uploaded by Multer
+    console.log('req.file');
+    console.log(req.file);
+    if (!req.file) {
+        // If no file was uploaded, handle this case gracefully.
+        // It might be because the file was too large, or not an allowed type,
+        // or simply no file was selected.
+        console.log("No image file uploaded or file type/size is invalid.");
+        return res.status(400).json({ error: "No image file uploaded or file type/size is invalid." });
     }
 
-    // check if student name and email already exist 
-    const checkUserSql = "SELECT * FROM " + mStudentDetailsTable + " WHERE `email` = ? ";
-    const checkIfExist = [
-        req.body.name,
-        req.body.email
-    ]
+    // --- Hash Password ---
+    let studentPass = await getHashedPassword(req.body.password, req, res);
+
+    // Get the filename and public path from req.file
+    const imageFilename = req.file.filename; // This is the unique filename saved by Multer
+    // Construct the public URL path for the image
+    const imagePublicPath = `/uploads/${imageFilename}`;
+
+    // check if student name and email already exist
+    const checkUserSql = "SELECT * FROM " + mStudentDetailsTable + " WHERE `email` = ? "; // Assuming email is the unique field
+    // Correcting checkIfExist - it should only contain the email for the WHERE clause
+    const checkIfExist = [ req.body.email ]; // Only check email as per the SQL query
+
     db.query(checkUserSql, checkIfExist, (dbErr, dbRes) => {
         if (dbErr) {
-            fs.unlink(req.file.path, (err) => {
-                if (err) console.error("Error deleting file[1] :", err);
-            });
-            return res.json({error: "Student's Email validation " + dbErr + ". Please try again."})
+            // Delete the file if there's a DB error during validation
+            if (req.file) {
+                fs.unlink(req.file.path, (unlinkErr) => {
+                    if (unlinkErr) console.log("Error deleting file after DB validation error:", unlinkErr);
+                });
+            }
+            console.log('Validation error');
+            return res.json({ error: "Student's Email validation error: " + dbErr.message + ". Please try again." })
         } else {
             if (dbRes.length > 0) {
-                fs.unlink(req.file.path, (err) => {
-                    if (err) console.error("Error deleting file[2] :", err);
-                });
-                return res.json({error: "Student's Email already exist. Please use another email."});
+                // Email already exists, delete the uploaded file
+                if (req.file) {
+                    fs.unlink(req.file.path, (unlinkErr) => {
+                        if (unlinkErr) console.error("Error deleting file when email already exists:", unlinkErr);
+                    });
+                }
+                console.log('Existing email error');
+                return res.json({ error: "Student's Email already exists. Please use another email." });
             } else {
                 // add student
                 const addUserSql = "INSERT INTO " + mStudentDetailsTable + " (`name`, `email`, `gender`, `age`, `img`, `password`, `is_active`) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -296,23 +328,30 @@ app.post('/add_student', mUpload.single('image'), async (req, res) => {
                     req.body.email,
                     req.body.gender,
                     req.body.age,
-                    req.body.img,
-                    req.body.password,
+                    imagePublicPath, // <--- CORRECTED: Use the path from req.file
+                    studentPass,  // <--- CORRECTED: Use the hashed password
                     1
-                ]
+                ];
+                console.log('imagePublicPath = ' + imagePublicPath);
+
                 db.query(addUserSql, values, (dbErr, dbRes) => {
                     if (dbErr) {
-                        fs.unlink(req.file.path, (err) => {
-                            if (err) console.error("Error deleting file[1] :", err);
-                        });
-                        return res.json({error: "Error adding student. Errcode = " + dbErr })
+                        // Delete file if DB insert fails
+                        if (req.file) {
+                            fs.unlink(req.file.path, (unlinkErr) => {
+                                if (unlinkErr) console.error("Error deleting file after DB insert error:", unlinkErr);
+                            });
+                        }
+                        console.log('Adding error');
+                        return res.json({ error: "Error adding student. Errcode = " + dbErr.message })
                     } else {
-                        return res.json({success: "Student added Successfuly"});
+                        console.log('Adding success');
+                        return res.json({ success: "Student added Successfully", imagePath: imagePublicPath });
                     }
-                })  
+                })
             }
         }
-    })                                                                                                                                                                                                                                                                                                                                                                                                      
+    })
 })
 
 // read/show student
@@ -326,13 +365,17 @@ app.get("/get_student/:id", (req, res) => {
 })
 
 // editing student
-app.post('/edit_user/:id', (req, res) => {
+app.post('/edit_student/:id', async (req, res) => {
     const id = req.params.id
+
+    // --- Hash Password ---
+    let studentEditedPass = await getHashedPassword(req.body.password, req, res);
+
     const updateStudentSql = "UPDATE " + mStudentDetailsTable + " SET `name` = ?, `email` = ?, `password` = ?, `age` = ?, `gender` = ? WHERE  id = ?";
     const updateStudentVals = [
         req.body.name,
         req.body.email,
-        req.body.password,
+        studentEditedPass,
         req.body.age,
         req.body.gender,
         id

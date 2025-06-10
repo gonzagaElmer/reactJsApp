@@ -5,8 +5,8 @@ import { DEFULT_STUDENT_PASS } from '../../config/constants'
 
 function Create() {
     const closeButtonRef = useRef(null);
-    const [selectedImage, setSelectedImage] = useState('')
-    const [imageFileName, setImageFileName] = useState('')
+    const [previewImage, setPreviewImage] = useState('')
+    const [toSaveImage, setToSaveImage] = useState('')
     const [values, setValues] = useState({
         cre_name: '',
         cre_email: '',
@@ -15,16 +15,16 @@ function Create() {
     })
 
     const handleFileChange = (e) => {
-        const fileName = e.target.files[0]
-        setSelectedImage(fileName ? URL.createObjectURL(fileName) : '')
-        setImageFileName(fileName ? fileName : '')
+        const file = e.target.files[0]
+        setPreviewImage(file ? URL.createObjectURL(file) : '')
+        setToSaveImage(file ? file : '')
     }
 
     function handleSubmit(e) {
         e.preventDefault()
 
          
-        if (imageFileName === undefined || imageFileName === '' || imageFileName.name === undefined) {
+        if (toSaveImage === undefined || toSaveImage === '') {
             alert('Please select a student photo')
             return
         }
@@ -45,12 +45,12 @@ function Create() {
         fData.append('gender', values.cre_gender)
         fData.append('age', values.cre_age)
         fData.append('password', DEFULT_STUDENT_PASS)
-        fData.append('img', imageFileName.name)
+        fData.append('img', toSaveImage)
         
-        // console.log("== FormData contents:");
-        // for (const [key, value] of fData.entries()) {
-        //     console.log(`${key}: ${value}`);
-        // }
+        console.log("== FormData contents:");
+        for (const [key, value] of fData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
 
         try {
             // send post request
@@ -67,10 +67,10 @@ function Create() {
                 }
             })
             .catch((err) => {
-                alert("Error[1]: " + AXIOS_ERR_MSG)
+                alert("Error[1]: " + err)
             })
-        } catch(e) {
-            alert("Error[2]: " + AXIOS_ERR_MSG)
+        } catch(err2) {
+            alert("Error[2]: " + err2)
         } 
     } 
 
@@ -117,14 +117,14 @@ function Create() {
 
             <div className='row my-3 px-1'>
                 <div className='col-12'>
-                    <input type="file" accept="image/*" name="file" onChange={handleFileChange} required/>
+                    {/* ensure that the input's name is the same on the server's multer */}
+                    <input type="file" accept="image/*" name="img" onChange={handleFileChange} required/>
                     {
-                        selectedImage && (
+                        previewImage && (
                             <img 
-                                src={selectedImage}
-                                width="auto"
-                                height={150}
-                                alt="Propic"
+                                src={previewImage}
+                                style={{ height: '220px', width: 'auto' }}
+                                alt="Student img"
                                 className="img img-thumbnail mt-2"/>
                         )
                     }

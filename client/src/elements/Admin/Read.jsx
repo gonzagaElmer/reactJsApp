@@ -48,7 +48,13 @@ function Read() {
 								<tbody>
 									<tr>
 										<td>Img: </td>
-										<td>{student['img']}</td>
+										<td>
+											<img 
+												src={student['img']} 
+												style={{ height: '220px', width: 'auto' }}
+												alt="Student img"
+												className="img img-thumbnail mt-2"/>
+										</td>
 									</tr>
 									<tr>
 										<td>ID: </td>

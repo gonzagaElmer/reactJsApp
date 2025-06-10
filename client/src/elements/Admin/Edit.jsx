@@ -7,7 +7,9 @@ import { PAGE_FROM, ACTIVE_TAB, DEACTIVATED_TAB, AXIOS_ERR_MSG, MIN_PASS_COUNT} 
 function Edit() {
 	const {id} = useParams()
 	const navigate = useNavigate()
+	const [selectedImage, setSelectedImage] = useState('')
 	const [data, setData] = useState({
+		img: '',
 		name: '',
 		email: '',
 		age: '',
@@ -26,6 +28,10 @@ function Edit() {
 		})
 	}, [id])
 
+    const handleFileChange = (e) => {
+        const fileName = e.target.files[0]
+        setSelectedImage(fileName ? URL.createObjectURL(fileName) : '')
+    }
 
 	function handleBackClick() {
 		var pageFrom = localStorage.getItem(PAGE_FROM)
@@ -53,9 +59,9 @@ function Edit() {
 				alert("Password must be more than " + MIN_PASS_COUNT + " characters.")
 			} else {
 				// update db
-				axios.post(`/edit_user/${id}`, data[0])
+				axios.post(`/edit_student/${id}`, data[0])
 				.then((res) => {
-					if (window.confirm(res + " Do you want to leave this page?")) {
+					if (window.confirm("Updated Successfully! Do you want to leave this page?")) {
 						navigate('/')
 					}
 				})
@@ -76,7 +82,21 @@ function Edit() {
 						<hr></hr>
 						<div className='card p-4 mt-2'>
 							<h5>Student ID : {id}</h5>
-							<form onSubmit={handleSubmit} key={studentArr.id}>
+							<form onSubmit={handleSubmit} key={studentArr.id}  encType='multipart/form-data' >
+								
+								<div className='col-12'>
+									<input type="file" accept="image/*" name="img" onChange={handleFileChange} required/>
+									{
+										studentArr.img && (
+											<img 
+                                				src={selectedImage == false ? studentArr.img : selectedImage}
+												style={{ height: '220px', width: 'auto' }}
+                                				alt="Student img"
+												className="img img-thumbnail mt-2"/>
+										)
+									}
+								</div>
+
 								<div className='row my-3'>
 									<div className='col-6'>
 										<label htmlFor='name'>Name</label>
@@ -111,7 +131,7 @@ function Edit() {
 
 								<div className='row my-3'>
 									<div className='col-6'>
-										<label htmlFor='password'>Password</label>
+										<label htmlFor='password'>New Password</label>
 										<input type='password' name='password' className='form-control mt-2' required 
 											onChange={(e)=> setData( [{...data[0], password: e.target.value}] )} placeholder={"*".repeat(MIN_PASS_COUNT)}/>
 									</div>
