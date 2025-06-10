@@ -5,70 +5,74 @@ import { DEFULT_STUDENT_PASS } from '../../config/constants'
 
 function Create() {
     const closeButtonRef = useRef(null);
+    const [selectedImage, setSelectedImage] = useState('')
+    const [imageFileName, setImageFileName] = useState('')
     const [values, setValues] = useState({
         cre_name: '',
         cre_email: '',
         cre_age: '',
         cre_gender: '',
-        cre_password: '',
-        cre_confirm_password: ''
     })
-    const [selectedImage, setSelectedImage] = useState(null)
-    const [uploadStatus, setUploadStatus] = useState('')
-    const formData = new FormData()
 
     const handleFileChange = (e) => {
-        const imageFile = e.target.files[0]
-        setSelectedImage(imageFile ? URL.createObjectURL(imageFile) : undefined)
+        const fileName = e.target.files[0]
+        setSelectedImage(fileName ? URL.createObjectURL(fileName) : '')
+        setImageFileName(fileName ? fileName : '')
     }
 
     function handleSubmit(e) {
         e.preventDefault()
 
-        if (values.cre_name === "" || values.cre_email === "" || values.cre_age === "") {
-            alert('Please fill out the form properly.')
-        } else {
-            if (!selectedImage) {
-                setUploadStatus('Please select a file/photo.')
-                return
-            }
-
-            formData.append('name', values.cre_name)
-            formData.append('email', values.cre_email)
-            formData.append('gender', values.cre_gender)
-            formData.append('age', values.cre_age)
-            formData.append('image', selectedImage)
-
-            try {
-                // requestSave(values)
-            } catch(e) {
-
-            }
+         
+        if (imageFileName === undefined || imageFileName === '' || imageFileName.name === undefined) {
+            alert('Please select a student photo')
+            return
         }
-    } 
 
-    function requestSave(values) {
-        // send post request
-        axios.post('/add_student', formData)
-        .then((res) => {
-            console.log(JSON.stringify(res))
-            if (res.data.error !== undefined) {
-                console.log("if")
-                alert(res.data.error)
-            } else {
-                console.log("else")
-                if (closeButtonRef.current) {
-                    closeButtonRef.current.click();
+        if (values.cre_name === "" || values.cre_email === "" || values.cre_gender === "" || values.cre_age === "") {
+            alert('Please fill out the form properly.')
+            return
+        } 
+
+        if (values.cre_age > 60) {
+            alert("Student's age should not be more than 60.")
+            return
+        }
+
+        var fData = new FormData()
+        fData.append('name', values.cre_name)
+        fData.append('email', values.cre_email)
+        fData.append('gender', values.cre_gender)
+        fData.append('age', values.cre_age)
+        fData.append('password', DEFULT_STUDENT_PASS)
+        fData.append('img', imageFileName.name)
+        
+        // console.log("== FormData contents:");
+        // for (const [key, value] of fData.entries()) {
+        //     console.log(`${key}: ${value}`);
+        // }
+
+        try {
+            // send post request
+            axios.post('/add_student', fData)
+            .then((res) => {
+                console.log(JSON.stringify(res))
+                if (res.data.error !== undefined) {
+                    alert(res.data.error)
+                } else {
+                    if (closeButtonRef.current) {
+                        closeButtonRef.current.click();
+                    }
+                    alert(res.data.success)
                 }
-                alert(res.data.success)
-            }
-            console.log("out")
-        })
-        .catch((err) => {
-            alert(AXIOS_ERR_MSG)
-            console.log(err)
-        })
-    }
+            })
+            .catch((err) => {
+                alert("Error[1]: " + AXIOS_ERR_MSG)
+            })
+        } catch(e) {
+            alert("Error[2]: " + AXIOS_ERR_MSG)
+        } 
+    } 
 
   return (
     <div className='row justify-content-center my-4 mx-2'>
@@ -119,8 +123,8 @@ function Create() {
                             <img 
                                 src={selectedImage}
                                 width="auto"
-                                height={200}
-                                alt="Selected Image"
+                                height={150}
+                                alt="Propic"
                                 className="img img-thumbnail mt-2"/>
                         )
                     }

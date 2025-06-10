@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME  } from '../config/constants';
+import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME, ADMIN_TEXT  } from '../config/constants';
 
 function Register() {
     const navigate = useNavigate();
@@ -15,7 +15,7 @@ function Register() {
     function handleRegister(e) {
         e.preventDefault();
 
-        if (regValues.name == "" || regValues.email == "" || regValues.password == "" || regValues.confirm_password == "") {
+        if (regValues.name === "" || regValues.email === "" || regValues.password === "" || regValues.confirm_password === "") {
             alert('Please fill out the form properly.')
         } else if (regValues.password !== regValues.confirm_password) {
             alert('Passwords are not similar. Please try again.')
@@ -53,7 +53,7 @@ function Register() {
                 <div className='col-10 col-sm-6 col-lg-4 col-xl-3'>
                     <h1 className='text-center'>{ APP_NAME }</h1>
                     <div className='card px-4 pt-3 pb-2'>
-                        <h3 className='text-center'>Registration</h3>
+                        <h3 className='text-center'>{ ADMIN_TEXT } Registration</h3>
 
                         <form onSubmit={handleRegister}>
                             <div className="form-group">

@@ -3,14 +3,15 @@ const mysql = require('mysql')
 const cors = require('cors')
 const path = require('path');
 const { error } = require('console');
+const multer = require('multer');
+const fs = require('fs');
+const bcrypt = require('bcryptjs'); // For password hashing
 
 const app = express();
-app.use(express.static(path.join(__dirname, "public")))
 app.use(cors())
 app.use(express.json())
 
-const port = 3000
-
+const mPort = 3000 // same with "../client/package.json"
 const db = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -18,12 +19,48 @@ const db = mysql.createConnection({
     database: "react_db"
 })
 
-app.listen(port, () => {
-    console.log('listening to port ' + port);
+app.listen(mPort, () => {
+    console.log('listening to port ' + mPort);
 })
 
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+// Ensure the upload directory exists
+if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR);
+}
 
-// global variables
+const mStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, UPLOAD_DIR)
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+         
+    }
+})
+
+const mUpload =  multer({
+    storage: mStorage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB file size limit
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png|gif/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (extname && mimetype) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images (jpeg, jpg, png, gif) are allowed!'));
+        }
+    }
+});
+
+app.use('/uploads', express.static(UPLOAD_DIR));
+
+// ================================================================================================
+// ================================== CUSTOM functions/variables ==================================
+// ================================================================================================
+
 const mStudentDetailsTable = "student_details";
 const mAdminDetailsTable = "admin_details"; 
 const mOrderByDateASC = "ORDER BY add_date ASC";
@@ -32,13 +69,11 @@ const mActivateToggleSql =  "UPDATE " + mStudentDetailsTable + " SET `is_active`
 const mGetDetailsByEmailAndPass = "SELECT id, name, email FROM " + mAdminDetailsTable + " WHERE `email` = ? AND `password` = ?";
 var mAdminDetailsObj = {};
 var mIsOnline = 0;
-var mDefaultStudentPass = "admin@123"
 
-// custom functions
-function updateIsOnlineStatus(res) {
+function updateAdminOnlineStatus(res) {
     console.log("mIsOnline = " + mIsOnline);
-    var updateTimeStamp = (mIsOnline) ? ", `last_login_date` = ?" : ", `last_logout_date` = ?";
-    var updateSql = "UPDATE " + mAdminDetailsTable + " SET `is_online` = ? " + updateTimeStamp + " WHERE  id = ?";
+    var updateLoginTimeStamp = (mIsOnline) ? ", `online_date` = ?" : ", `offline_date` = ?";
+    var updateSql = "UPDATE " + mAdminDetailsTable + " SET `is_online` = ? " + updateLoginTimeStamp + " WHERE  id = ?";
     const values = [
         mIsOnline,
         getCurrentTimestamp(),
@@ -64,7 +99,12 @@ function getCurrentTimestamp() {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-// login
+
+// ================================================================================================
+// ===================================== ADMIN urls start =========================================
+// ================================================================================================
+
+// admin login
 app.post("/admin_login", (req, res) => {
     // get admin_id by email and password
     const loginValues = [
@@ -82,7 +122,7 @@ app.post("/admin_login", (req, res) => {
                     // log data
                     if (mAdminDetailsObj !== null) {
                         mIsOnline = 1;
-                        updateIsOnlineStatus(res)
+                        updateAdminOnlineStatus(res)
                     }
                 } catch(e) {
                     return res.json({ error: "Invalid credentials error[2]. Please try again!"});
@@ -94,12 +134,13 @@ app.post("/admin_login", (req, res) => {
     })
 })
 
+// admin logout
 app.post("/admin_logout/:id", (req, res) => {
     mIsOnline = 0;
-    updateIsOnlineStatus(res)
+    updateAdminOnlineStatus(res)
 })
 
-// register
+// admin register
 app.post("/admin_register", (req, res) => {
     // check if email doesn't exist
     const isEmailExistQuery = "SELECT * FROM " + mAdminDetailsTable + " WHERE `email` = ?";
@@ -108,7 +149,7 @@ app.post("/admin_register", (req, res) => {
     ]
     db.query(isEmailExistQuery, values, (dbErr, dbRes) => {
         if (dbErr) {
-            return res.json({error: "Admin Registration email error. Please try again."})
+            return res.json({error: "Admin Email registration " + dbErr + " Please try again."})
         } else {
             if (dbRes.length > 0) {
                 return res.json({error: "Admin Email already exist. Please use another email."});
@@ -121,16 +162,18 @@ app.post("/admin_register", (req, res) => {
 
 function registerAdminAccount(req, res) {
     // insert to db
-    const registerSql = "INSERT INTO " + mAdminDetailsTable + " (`name`, `email`, `password`, `is_online`) VALUES (?, ?, ?, ?)";
+    const registerSql = "INSERT INTO " + mAdminDetailsTable + " (`name`, `email`, `password`, `is_online`, `online_date`, `offline_date`) VALUES (?, ?, ?, ?, ?, ?)";
     const saveVals = [
         req.body.name,
         req.body.email,
         req.body.password,
-        "0"
+        "0",
+        getCurrentTimestamp(),
+        ""
     ]
     db.query(registerSql, saveVals, (dbErr, dbRes) => {
         if (dbErr) {
-            return res.json({error: "Admin Registration saving error. Please try again."})
+            return res.json({error: "Admin Registration saving " + dbErr + " Please try again. " })
         } else {
             // get the admin ID and details from db
             const adminIdVals = [
@@ -148,7 +191,7 @@ function registerAdminAccount(req, res) {
                             // log data
                             if (mAdminDetailsObj !== null) {
                                 mIsOnline = 1;
-                                updateIsOnlineStatus(res)
+                                updateAdminOnlineStatus(res)
                             }
                         } catch(e) {
                             return res.json({ error: "Admin Registration saving error[4]. Please try again."});
@@ -161,6 +204,38 @@ function registerAdminAccount(req, res) {
         }
     })  
 }
+
+// admin read/show
+app.get("/get_admin/:id", (req, res) => {
+    const adminId = req.params.id
+    const adminSql = "SELECT * FROM " + mAdminDetailsTable + " WHERE `id` = ?";
+    db.query(adminSql, [ adminId ], (dbErr, dbRes) => {
+        if (dbErr) return res.json({error: "Error fetching Admin's details"})
+            return res.json(dbRes)
+    })
+})
+
+// admin editing
+app.post('/edit_admin/:id', (req, res) => {
+    console.log("edit ")
+    const adminId = req.params.id
+    console.log("adminId = " + adminId)
+    const updateAdminSql = "UPDATE " + mAdminDetailsTable + " SET `password` = ? WHERE id = ?";
+    const updateAdminVal = [
+        req.body.password,
+        adminId
+    ]
+    console.log("updateAdminVal = " + updateAdminVal)
+    db.query(updateAdminSql, updateAdminVal, (dbErr, dbRes) => {
+        if (dbErr) return res.json( {error: "There's an error changing admin's password."} )
+            return res.json({success: "Password changed succesfully."})
+    })
+})
+
+
+// ================================================================================================
+// =================================== STUDENT urls start =========================================
+// ================================================================================================
 
 // all active students
 app.get("/students", (req, res) => {
@@ -181,32 +256,59 @@ app.get("/deactivated", (req, res) => {
 })
 
 // adding student
-app.post('/add_student', (req, res) => {
+app.post('/add_student', mUpload.single('image'), async (req, res) => {
+    // --- Hash Password ---
+    let hashedPassword;
+    try {
+        const salt = await bcrypt.genSalt(10); // Generate a salt (cost factor 10)
+        hashedPassword = await bcrypt.hash(req.body.password, salt); // Hash the password
+    } catch (err) {
+        console.error('Error hashing password:', err);
+        fs.unlink(req.file.path, (err) => { // Delete file if password hashing fails
+            if (err) console.error("Error deleting file:", err);
+        });
+        return res.json({error: "Error processing password."})
+    }
+
     // check if student name and email already exist 
     const checkUserSql = "SELECT * FROM " + mStudentDetailsTable + " WHERE `email` = ? ";
-    const checkVals = [
-        req.body.cre_email
+    const checkIfExist = [
+        req.body.name,
+        req.body.email
     ]
-    db.query(checkUserSql, checkVals, (dbErr, dbRes) => {
+    db.query(checkUserSql, checkIfExist, (dbErr, dbRes) => {
         if (dbErr) {
-            return res.json({error: "Adding student error. Please try again."})
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error("Error deleting file[1] :", err);
+            });
+            return res.json({error: "Student's Email validation " + dbErr + ". Please try again."})
         } else {
             if (dbRes.length > 0) {
+                fs.unlink(req.file.path, (err) => {
+                    if (err) console.error("Error deleting file[2] :", err);
+                });
                 return res.json({error: "Student's Email already exist. Please use another email."});
             } else {
                 // add student
-                const addUserSql = "INSERT INTO " + mStudentDetailsTable + " (`name`, `email`, `password`, `age`, `gender`, `is_active`) VALUES (?, ?, ?, ?, ?, ?)";
+                const addUserSql = "INSERT INTO " + mStudentDetailsTable + " (`name`, `email`, `gender`, `age`, `img`, `password`, `is_active`) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 const values = [
-                    req.body.cre_name,
-                    req.body.cre_email,
-                    mDefaultStudentPass,
-                    req.body.cre_age,
-                    req.body.cre_gender,
-                    "1"
+                    req.body.name,
+                    req.body.email,
+                    req.body.gender,
+                    req.body.age,
+                    req.body.img,
+                    req.body.password,
+                    1
                 ]
                 db.query(addUserSql, values, (dbErr, dbRes) => {
-                    if (dbErr) return res.json({error: "Error adding student. Errcode = " + err })
-                    return res.json({success: "Student added Successfuly"});
+                    if (dbErr) {
+                        fs.unlink(req.file.path, (err) => {
+                            if (err) console.error("Error deleting file[1] :", err);
+                        });
+                        return res.json({error: "Error adding student. Errcode = " + dbErr })
+                    } else {
+                        return res.json({success: "Student added Successfuly"});
+                    }
                 })  
             }
         }
@@ -220,15 +322,6 @@ app.get("/get_student/:id", (req, res) => {
     db.query(studentSql, [studentId], (dbErr, dbRes) => {
         if (dbErr) return res.json({ error: "Error fetching Student's details."})
         return res.json(dbRes);
-    })
-})
-
-app.get("/get_admin/:id", (req, res) => {
-    const adminId = req.params.id
-    const adminSql = "SELECT * FROM " + mAdminDetailsTable + " WHERE `id` = ?";
-    db.query(adminSql, [ adminId ], (dbErr, dbRes) => {
-        if (dbErr) return res.json({error: "Error fetching Admin's details"})
-            return res.json(dbRes)
     })
 })
 
@@ -248,23 +341,6 @@ app.post('/edit_user/:id', (req, res) => {
         if (dbErr) return res.json({error: "There's an error editing this student"})
         return res.json({success: "Student's info is updated Successfuly"});
     })                                                                                                                                                                                                                                                                                                                                                                                                        
-})
-
-// editing admin
-app.post('/edit_admin/:id', (req, res) => {
-    console.log("edit ")
-    const adminId = req.params.id
-    console.log("adminId = " + adminId)
-    const updateAdminSql = "UPDATE " + mAdminDetailsTable + " SET `password` = ? WHERE id = ?";
-    const updateAdminVal = [
-        req.body.password,
-        adminId
-    ]
-    console.log("updateAdminVal = " + updateAdminVal)
-    db.query(updateAdminSql, updateAdminVal, (dbErr, dbRes) => {
-        if (dbErr) return res.json( {error: "There's an error changing admin's password."} )
-            return res.json({success: "Password changed succesfully."})
-    })
 })
 
 // activating student

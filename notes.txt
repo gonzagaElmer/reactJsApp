@@ -1,5 +1,9 @@
 ReactJs Notes
+============================================== DATABASE
+DB_NAME: react_db
+DIRECTORY: ../migration/react_db.sql
 
+============================================== CODING
 1. setup proj
     - create client & server folders
     - cdRoot: npm init -y
@@ -28,7 +32,8 @@ ReactJs Notes
    - add route to App.js 
    - on new Element type : rfce
 
-4. running the app
+
+============================================== RUNNING
  xammp: run mysql and apache
  cdServer: npm run dev
  cdClient: npm start

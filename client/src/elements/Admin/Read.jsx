@@ -47,6 +47,10 @@ function Read() {
 								</thead>
 								<tbody>
 									<tr>
+										<td>Img: </td>
+										<td>{student['img']}</td>
+									</tr>
+									<tr>
 										<td>ID: </td>
 										<td>{student['id']}</td>
 									</tr>

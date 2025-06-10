@@ -36,9 +36,9 @@ function Home() {
 
   function handleStudent(id, action) {
 	localStorage.setItem(PAGE_FROM, ACTIVE_TAB)
-	if (action == "view") {
+	if (action === "view") {
 		navigate("/read/" + id)
-	} else if (action == "edit") {
+	} else if (action === "edit") {
 		navigate("/edit/" + id)
 	}
   }

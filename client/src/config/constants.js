@@ -1,4 +1,5 @@
-export const APP_NAME = "El React App"
+export const APP_NAME = "El React App";
+export const ADMIN_TEXT = "Admin";
 export const LS_ADMIN_ID = "admin_id";
 export const LS_ADMIN_NAME = "admin_name";
 export const PAGE_FROM = "page_from";

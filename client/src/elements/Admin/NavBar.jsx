@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem, DropdownDivider } from 'react-bootstrap';
 import {Link, useNavigate} from 'react-router-dom'
 import axios from 'axios';
-import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME, PAGE_FROM  } from '../../config/constants';
+import { LS_ADMIN_ID, LS_ADMIN_NAME, APP_NAME, PAGE_FROM, ADMIN_TEXT  } from '../../config/constants';
 import { useEffect } from 'react';
 
 function NavBar() {
@@ -56,7 +56,7 @@ function NavBar() {
 				</button>
 			</form> */}
 			<Dropdown>
-				<DropdownToggle className="btn btn-secondary">Admin {mAdminName}</DropdownToggle>
+				<DropdownToggle className="btn btn-secondary">{ ADMIN_TEXT + " " + mAdminName}</DropdownToggle>
 				<DropdownMenu>
 				<DropdownItem>
 					<Link to="/profile" className="text-dark text-decoration-none">
